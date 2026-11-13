@@ -1,0 +1,18 @@
+/* Theme colors and inherited type keep the document native to each vault. */
+.dictatebar-timestamp {
+  color: var(--text-muted);
+  font-size: var(--font-smaller);
+  font-variant-numeric: tabular-nums;
+  margin-inline-end: 0.45em;
+}
+.dictatebar-block {
+  padding-block: 0.25rem;
+  overflow-wrap: anywhere;
+}
+.dictatebar-block > :first-child { margin-block-start: 0; }
+.dictatebar-block > :last-child { margin-block-end: 0; }
+.dictatebar-block .dictatebar-entry { margin-block: 0.4em; }
+.dictatebar-block input[type="checkbox"]:disabled { opacity: 1; }
+@media (max-width: 480px) {
+  .dictatebar-block .dictatebar-timestamp { display: block; margin-block-end: 0.2em; }
+}

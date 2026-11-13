@@ -1,0 +1,80 @@
+# DictateBar for Obsidian
+
+A small companion plugin that brings DictateBar's readable dictations into an Obsidian vault. DictateBar captures and saves your words; Obsidian displays the same Markdown with friendlier dates.
+
+## Use with DictateBar
+
+1. Keep a Markdown note inside your Obsidian vault.
+2. Select that same file as a Note File in DictateBar using its file picker.
+3. Enable this plugin in Obsidian and open the note in Reading view.
+
+Existing DictateBar bullets and checkboxes work without conversion:
+
+```markdown
+## Meeting notes
+
+<!-- dictatebar:start id="meeting-notes" -->
+- [2026-09-13T19:30:00-04:00] Discuss **next steps** with the team.
+- [ ] [2026-09-13T19:32:00-04:00] Send the follow-up.
+<!-- dictatebar:end id="meeting-notes" -->
+```
+
+Obsidian already hides the insertion comments when rendering Markdown. This plugin leaves those comments intact so DictateBar can continue finding its insertion locations. It displays valid timestamps as localized dates and times, for example `Sep 13, 2026, 7:30 PM`. Hover over a date to see its original timestamp.
+
+Current ISO timestamps include an offset and display in the device's local time zone. Older `9/13/2026, 7:30 PM` timestamps are interpreted as local time, matching DictateBar's legacy format. Invalid or omitted timestamps remain as written. Entries stay in source order.
+
+## Optional dictation code block
+
+Wrap pasted dictations in a `dictatebar` fence to render Markdown inside that code block:
+
+````markdown
+```dictatebar
+- [2026-09-13T19:30:00-04:00] Discuss **next steps**.
+- [ ] [2026-09-13T19:32:00-04:00] Send the follow-up.
+```
+````
+
+Checkboxes inside this block are read-only; edit their Markdown source to change them. Normal Markdown tasks outside a fence keep Obsidian's behavior.
+
+For ongoing captures, use the regular Markdown insertion location above. DictateBar protects fenced code from insertion, so don't place its insertion markers inside a fence.
+
+## Install locally
+
+Copy `main.js`, `manifest.json`, and `styles.css` into:
+
+```text
+<your-vault>/.obsidian/plugins/dictatebar/
+```
+
+Reload Obsidian, then enable **DictateBar** under Settings → Community plugins. For a fresh build, run `npm ci` and `npm run build` before copying the files.
+
+Until the plugin is listed in Obsidian's Community Plugins directory, install it manually using the files above.
+
+## Scope
+
+- Native Markdown rendering, including emphasis, links, bullets, and tasks.
+- Readable timestamps on DictateBar-style list entries, also supporting older dates.
+- Optional `dictatebar` code blocks with theme-aware spacing.
+- No settings, capture, purchases, filtering, network requests, or vault writes.
+
+The plugin recognizes timestamp syntax rather than requiring insertion comments; any list entry starting with a valid supported timestamp receives the date treatment. It doesn't alter prose, inline-code examples, or source text.
+
+Reading view is the primary supported surface. Code blocks also use Obsidian's standard preview processor. Ordinary list timestamp styling in Live Preview, mobile behavior, and PDF export need verification inside Obsidian.
+
+## Development
+
+Requires a current Node.js version with TypeScript stripping support (Node 22.18+ or newer).
+
+```sh
+npm ci
+npm test
+npm run build
+```
+
+`npm run dev` watches and rebuilds `main.js`. Runtime imports are limited to Obsidian's API; build and test dependencies aren't shipped in the plugin bundle.
+
+Validation: TypeScript check and production bundle passed; five focused tests passed for offset conversion, legacy times, invalid dates, readable dates, and DOM preservation/idempotence. Actual Obsidian runtime rendering remains unverified.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
