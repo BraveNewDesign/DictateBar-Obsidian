@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Make display settings discoverable in Obsidian settings search and use current Obsidian rendering APIs.
+- Build and attest release assets with GitHub Actions.
+
 ## 0.1.0
 
 - Display Dictate Bar timestamps as bold, localized dates and times in Reading view, with the original timestamp available on hover.

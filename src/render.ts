@@ -38,7 +38,7 @@ export function decorateTimestamp(item: HTMLElement, settings: DictateBarSetting
     const whitespace = text.match(/^\s*/)?.[0].length ?? 0;
     const timestamp = leadingTimestamp(text.slice(whitespace));
     if (!timestamp) return;
-    const time = container.ownerDocument.createElement('time');
+    const time = container.createEl('time');
     time.className = 'dictatebar-timestamp';
     time.dateTime = timestamp.date.toISOString();
     time.textContent = prettyTimestamp(timestamp.date, undefined, settings);

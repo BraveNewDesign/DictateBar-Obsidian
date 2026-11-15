@@ -116,14 +116,14 @@ function displayNameFromID(id: string): string {
 }
 
 export function createBoundary(root: HTMLElement, kind: 'start' | 'end', name: string): HTMLElement {
-  const document = root.ownerDocument;
-  const boundary = document.createElement('div');
+  const boundary = root.createEl('div');
+  boundary.detach();
   const label = `${kind === 'start' ? 'Start' : 'End'} of ${name}`;
   boundary.className = `dictatebar-location-boundary dictatebar-location-boundary--${kind}`;
   boundary.setAttribute('role', 'separator');
   boundary.setAttribute('aria-label', label);
 
-  const text = document.createElement('span');
+  const text = boundary.createEl('span');
   text.className = 'dictatebar-location-boundary-label';
   text.textContent = label;
   boundary.append(text);

@@ -3,6 +3,15 @@ import assert from 'node:assert/strict';
 import { leadingTimestamp, parseTimestamp, prettyTimestamp } from '../src/timestamps.ts';
 import { decorateTimestamps } from '../src/render.ts';
 import { JSDOM } from 'jsdom';
+
+function makeDOM(html: string): JSDOM {
+  const dom = new JSDOM(html);
+  const prototype = dom.window.HTMLElement.prototype as any;
+  prototype.createEl = function(tag: string) { const element = this.ownerDocument.createElement(tag); this.append(element); return element; };
+  prototype.detach = function() { this.remove(); };
+  return dom;
+}
+
 import { DEFAULT_SETTINGS, normalizeSettings } from '../src/preferences.ts';
 import { decorateSourceSection, locationsInSource } from '../src/sections.ts';
 
@@ -27,7 +36,7 @@ test('formatted dates are readable and leading matches leave the body intact', (
   assert.equal(text.slice(leadingTimestamp(text)!.length), ' **Hello**');
 });
 test('rendering preserves links, tasks, source order, and is idempotent', () => {
-  const dom = new JSDOM(`<ul><li>[2026-09-13T12:00:00Z] <strong>Hello</strong> <a href="note">note</a></li><li><p><input type="checkbox" checked> [9/13/2026, 1:00 PM] Done</p></li><li>Untimestamped</li><li><code>[2026-09-13T12:00:00Z]</code> example</li></ul>`);
+  const dom = makeDOM(`<ul><li>[2026-09-13T12:00:00Z] <strong>Hello</strong> <a href="note">note</a></li><li><p><input type="checkbox" checked> [9/13/2026, 1:00 PM] Done</p></li><li>Untimestamped</li><li><code>[2026-09-13T12:00:00Z]</code> example</li></ul>`);
   Object.assign(globalThis, { Node: dom.window.Node });
   const root = dom.window.document.body;
   root.insertBefore(dom.window.document.createComment(' dictatebar:start id="test" '), root.firstChild);
@@ -45,7 +54,7 @@ test('rendering preserves links, tasks, source order, and is idempotent', () => 
 });
 
 test('timestamps outside managed locations are left unchanged', () => {
-  const dom = new JSDOM('<div id="note"></div>');
+  const dom = makeDOM('<div id="note"></div>');
   const root = dom.window.document.querySelector<HTMLElement>('#note')!;
   const outsideBefore = dom.window.document.createElement('li');
   outsideBefore.textContent = '[2026-09-13T12:00:00Z] outside before';
@@ -69,7 +78,7 @@ test('timestamps outside managed locations are left unchanged', () => {
 
 test('unclosed and mismatched markers do not change content inside an invalid location', () => {
   for (const ending of [null, ' dictatebar:end id="other" ']) {
-    const dom = new JSDOM('<div id="note"></div>');
+    const dom = makeDOM('<div id="note"></div>');
     const root = dom.window.document.querySelector<HTMLElement>('#note')!;
     root.append(dom.window.document.createComment(' dictatebar:start id="managed" '));
     const entry = dom.window.document.createElement('li');
@@ -86,7 +95,7 @@ test('unclosed and mismatched markers do not change content inside an invalid lo
 });
 
 test('timestamps in a DictateBar code block are formatted across the block', () => {
-  const dom = new JSDOM('<div id="block"><ul><li>[2026-09-13T12:00:00Z] block entry</li></ul></div>');
+  const dom = makeDOM('<div id="block"><ul><li>[2026-09-13T12:00:00Z] block entry</li></ul></div>');
   const root = dom.window.document.querySelector<HTMLElement>('#block')!;
 
   decorateTimestamps(root, {
@@ -100,7 +109,7 @@ test('timestamps in a DictateBar code block are formatted across the block', () 
 });
 
 test('rendering labels DictateBar location boundaries without changing source comments', () => {
-  const dom = new JSDOM('<div id="note"></div>');
+  const dom = makeDOM('<div id="note"></div>');
   const root = dom.window.document.querySelector<HTMLElement>('#note')!;
   root.append(dom.window.document.createComment(' dictatebar:start id="meeting-notes" '));
   const paragraph = dom.window.document.createElement('p');
@@ -120,7 +129,7 @@ test('rendering labels DictateBar location boundaries without changing source co
 });
 
 test('manual-name markers use the exact name and unnamed end marker closes the visible location', () => {
-  const dom = new JSDOM('<div id="note"></div>');
+  const dom = makeDOM('<div id="note"></div>');
   const root = dom.window.document.querySelector<HTMLElement>('#note')!;
   root.append(dom.window.document.createComment(' dictatebar:start Weekly Review '));
   root.append(dom.window.document.createComment(' dictatebar:end '));
@@ -134,7 +143,7 @@ test('manual-name markers use the exact name and unnamed end marker closes the v
 });
 
 test('manual-name labels carry across separate rendered sections', () => {
-  const dom = new JSDOM('<div id="start"></div><div id="end"></div>');
+  const dom = makeDOM('<div id="start"></div><div id="end"></div>');
   const start = dom.window.document.querySelector<HTMLElement>('#start')!;
   const end = dom.window.document.querySelector<HTMLElement>('#end')!;
   start.append(dom.window.document.createComment(' dictatebar:start Weekly Review '));
@@ -148,7 +157,7 @@ test('manual-name labels carry across separate rendered sections', () => {
 });
 
 test('timestamp entries carry across rendered sections until the matching end marker', () => {
-  const dom = new JSDOM('<div id="start"></div><div id="content"></div><div id="end"></div>');
+  const dom = makeDOM('<div id="start"></div><div id="content"></div><div id="end"></div>');
   const start = dom.window.document.querySelector<HTMLElement>('#start')!;
   const content = dom.window.document.querySelector<HTMLElement>('#content')!;
   const end = dom.window.document.querySelector<HTMLElement>('#end')!;
@@ -169,7 +178,7 @@ test('timestamp entries carry across rendered sections until the matching end ma
 });
 
 test('marker-like comments in code blocks remain untouched', () => {
-  const dom = new JSDOM('<div id="note"><pre></pre></div>');
+  const dom = makeDOM('<div id="note"><pre></pre></div>');
   const root = dom.window.document.querySelector<HTMLElement>('#note')!;
   root.querySelector('pre')!.append(dom.window.document.createComment(' dictatebar:start id="example" '));
 
@@ -182,7 +191,7 @@ test('marker-like comments in code blocks remain untouched', () => {
 
 test('source sections decorate Obsidian list bullets and preserve entries outside locations', () => {
   const source = ['<!-- dictatebar:start id="work" -->', '- [2026-10-21T09:31:12-07:00] **Hello**', '<!-- dictatebar:end id="work" -->', '- [2026-10-21T09:31:12-07:00] outside'].join('\n');
-  const dom = new JSDOM('<div><ul><li data-line="0"><span class="list-bullet"></span>[2026-10-21T09:31:12-07:00] <strong>Hello</strong></li></ul></div>');
+  const dom = makeDOM('<div><ul><li data-line="0"><span class="list-bullet"></span>[2026-10-21T09:31:12-07:00] <strong>Hello</strong></li></ul></div>');
   const section = dom.window.document.querySelector('div')!;
   decorateSourceSection(section, source, 1, 1);
   decorateSourceSection(section, source, 1, 1);
@@ -223,7 +232,7 @@ test('date and time format choices use the local calendar and support midnight',
 
 test('separator settings independently control boundaries while entries stay formatted', () => {
   const source = '<!-- dictatebar:start Work -->\n- [2026-10-21T09:31:12-07:00] text\n<!-- dictatebar:end -->';
-  const dom = new JSDOM('<div id="start"></div><div id="entry"><ul><li data-line="0"><span class="list-bullet"></span>[2026-10-21T09:31:12-07:00] text</li></ul></div><div id="end"></div>');
+  const dom = makeDOM('<div id="start"></div><div id="entry"><ul><li data-line="0"><span class="list-bullet"></span>[2026-10-21T09:31:12-07:00] text</li></ul></div><div id="end"></div>');
   const start = dom.window.document.querySelector<HTMLElement>('#start')!;
   const entry = dom.window.document.querySelector<HTMLElement>('#entry')!;
   const end = dom.window.document.querySelector<HTMLElement>('#end')!;
@@ -238,7 +247,7 @@ test('separator settings independently control boundaries while entries stay for
 });
 
 test('fenced block entries use the selected timestamp formats', () => {
-  const dom = new JSDOM('<div><ul><li>[2026-10-21T09:31:12-07:00] entry</li></ul></div>');
+  const dom = makeDOM('<div><ul><li>[2026-10-21T09:31:12-07:00] entry</li></ul></div>');
   const root = dom.window.document.querySelector<HTMLElement>('div')!;
   decorateTimestamps(root, undefined, true, { ...DEFAULT_SETTINGS, dateFormat: 'iso', timeFormat: '24-hour' });
   assert.match(root.querySelector('time')!.textContent!, /^2026-10-21 \d{2}:\d{2}$/);

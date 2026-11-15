@@ -1,7 +1,7 @@
 {
   "id": "dictatebar",
   "name": "Dictate Bar",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "minAppVersion": "1.15.1",
   "description": "Render Dictate Bar dictations with readable timestamps and native Markdown formatting.",
   "author": "Shawn Crawford",
