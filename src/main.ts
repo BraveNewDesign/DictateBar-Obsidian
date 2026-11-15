@@ -1,8 +1,9 @@
 import { MarkdownRenderChild, MarkdownRenderer, Plugin } from 'obsidian';
 import { decorateTimestamps } from './render';
+import type { LocationRenderState } from './locations';
 
 export default class DictateBarPlugin extends Plugin {
-  private readonly openLocationNamesByDocument = new Map<string, string>();
+  private readonly locationStatesByDocument = new Map<string, LocationRenderState>();
 
   onload(): void {
     this.registerMarkdownCodeBlockProcessor('dictatebar', async (source, element, context) => {
@@ -11,7 +12,12 @@ export default class DictateBarPlugin extends Plugin {
       element.addClass('dictatebar-block');
       // Native rendering preserves links, emphasis, lists, and other Markdown.
       await MarkdownRenderer.render(this.app, source, element, context.sourcePath, child);
-      decorateTimestamps(element);
+      decorateTimestamps(element, {
+        insideLocation: false,
+        isCurrentLocationValid: false,
+        pendingItems: [],
+        pendingBoundaries: [],
+      }, true);
       // Rendered checkboxes are a read-only projection of the fenced source.
       element.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach(input => {
         input.disabled = true;
@@ -19,10 +25,15 @@ export default class DictateBarPlugin extends Plugin {
       });
     });
     this.registerMarkdownPostProcessor((element, context) => {
-      const openLocationName = this.openLocationNamesByDocument.get(context.docId);
-      const nextOpenLocationName = decorateTimestamps(element, openLocationName);
-      if (nextOpenLocationName) this.openLocationNamesByDocument.set(context.docId, nextOpenLocationName);
-      else this.openLocationNamesByDocument.delete(context.docId);
+      const locationState = this.locationStatesByDocument.get(context.docId) ?? {
+        insideLocation: false,
+        isCurrentLocationValid: false,
+        pendingItems: [],
+        pendingBoundaries: [],
+      };
+      const nextLocationState = decorateTimestamps(element, locationState);
+      if (nextLocationState.insideLocation) this.locationStatesByDocument.set(context.docId, nextLocationState);
+      else this.locationStatesByDocument.delete(context.docId);
     });
   }
 }

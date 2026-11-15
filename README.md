@@ -19,9 +19,9 @@ Existing DictateBar bullets and checkboxes work without conversion:
 <!-- dictatebar:end id="meeting-notes" -->
 ```
 
-The plugin keeps the insertion comments in the Markdown source so DictateBar can continue finding its locations. It presents the start as a named heading with a rule extending to the right, and the end as **End of Meeting Notes** centered between two rules, following DictateBar's viewer treatment. For ID-based markers, it turns the stable ID into a readable label; manual-name markers display their exact name. Valid timestamps appear as localized dates and times, for example `Sep 13, 2026, 7:30 PM`. Hover over a date to see its original timestamp.
+The plugin keeps the insertion comments in the Markdown source so DictateBar can continue finding its locations. For complete, matching marker pairs, it presents the start as a named heading with a rule extending to the right, and the end as **End of Meeting Notes** centered between two rules, following DictateBar's viewer treatment. For ID-based markers, it turns the stable ID into a readable label; manual-name markers display their exact name. Inside a managed location, valid timestamps appear as localized dates and times, for example `Sep 13, 2026, 7:30 PM`. Hover over a date to see its original timestamp.
 
-Current ISO timestamps include an offset and display in the device's local time zone. Older `9/13/2026, 7:30 PM` timestamps are interpreted as local time, matching DictateBar's legacy format. Invalid or omitted timestamps remain as written. Entries stay in source order.
+Current ISO timestamps include an offset and display in the device's local time zone. Older `9/13/2026, 7:30 PM` timestamps are interpreted as local time, matching DictateBar's legacy format. Invalid or omitted timestamps remain as written. Entries stay in source order. These formatting rules apply only inside a managed location or a `dictatebar` fenced block; matching timestamps elsewhere in the note are left alone.
 
 ## Optional dictation code block
 
@@ -54,11 +54,11 @@ Until the plugin is listed in Obsidian's Community Plugins directory, install it
 
 - Native Markdown rendering, including emphasis, links, bullets, and tasks.
 - Clearly labeled start and end boundaries for DictateBar insertion locations.
-- Readable timestamps on DictateBar-style list entries, also supporting older dates.
+- Readable timestamps on entries inside managed locations and `dictatebar` fenced blocks, also supporting older dates.
 - Optional `dictatebar` code blocks with theme-aware spacing.
 - No settings, capture, purchases, filtering, network requests, or vault writes.
 
-The plugin recognizes timestamp syntax rather than requiring insertion comments; any list entry starting with a valid supported timestamp receives the date treatment. It doesn't alter prose, inline-code examples, or source text.
+Timestamp formatting requires a managed location or the dedicated `dictatebar` fence. The plugin leaves timestamps outside those boundaries, ordinary prose, inline-code examples, and the Markdown source unchanged.
 
 Reading view is the primary supported surface. Code blocks also use Obsidian's standard preview processor. Ordinary list timestamp styling in Live Preview, mobile behavior, and PDF export need verification inside Obsidian.
 

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Render DictateBar insertion markers as labeled start/end separators in Markdown preview.
+- Limit timestamp formatting to managed insertion locations and `dictatebar` fenced blocks.
 
 ## 0.1.0
 

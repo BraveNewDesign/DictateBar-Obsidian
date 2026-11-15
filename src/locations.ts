@@ -1,36 +1,88 @@
 type LocationMarker =
-  | { kind: 'start'; name: string }
-  | { kind: 'end'; id?: string };
+  | { kind: 'start'; name: string; key: string }
+  | { kind: 'end'; key?: string };
+
+type PendingBoundary = { comment: Comment; kind: 'start' | 'end'; name: string };
+
+export type LocationRenderState = {
+  insideLocation: boolean;
+  openLocationName?: string;
+  openLocationKey?: string;
+  isCurrentLocationValid: boolean;
+  pendingItems: HTMLElement[];
+  pendingBoundaries: PendingBoundary[];
+};
 
 const COMMENT_NODE = 8;
-const SHOW_COMMENT = 128;
+const SHOW_ELEMENT_AND_COMMENT = 129;
 
-export function decorateLocationMarkers(root: HTMLElement, previousOpenLocationName?: string): string | undefined {
-  const walker = root.ownerDocument.createTreeWalker(root, SHOW_COMMENT);
-  const comments: Comment[] = [];
+export function decorateLocationMarkers(
+  root: HTMLElement,
+  initialState: LocationRenderState = {
+    insideLocation: false,
+    isCurrentLocationValid: false,
+    pendingItems: [],
+    pendingBoundaries: [],
+  },
+  onManagedItems: (items: HTMLElement[]) => void = () => {},
+): LocationRenderState {
+  const walker = root.ownerDocument.createTreeWalker(root, SHOW_ELEMENT_AND_COMMENT);
+  const nodes: Node[] = [];
   let current = walker.nextNode();
   while (current) {
-    if (current.nodeType === COMMENT_NODE) comments.push(current as Comment);
+    nodes.push(current);
     current = walker.nextNode();
   }
 
-  let openLocationName = previousOpenLocationName;
-  for (const comment of comments) {
-    if (comment.parentElement?.closest('pre, code')) continue;
+  let insideLocation = initialState.insideLocation;
+  let openLocationName = initialState.openLocationName;
+  let openLocationKey = initialState.openLocationKey;
+  let isCurrentLocationValid = initialState.isCurrentLocationValid;
+  let pendingItems = [...initialState.pendingItems];
+  let pendingBoundaries = [...initialState.pendingBoundaries];
+  for (const node of nodes) {
+    if (!root.contains(node)) continue;
+    if (node.nodeType === 1) {
+      const element = node as HTMLElement;
+      if (element.tagName === 'LI' && insideLocation) pendingItems.push(element);
+      continue;
+    }
+    if (node.nodeType !== COMMENT_NODE) continue;
+    const comment = node as Comment;
+    if (root.closest('pre, code') || comment.parentElement?.closest('pre, code')) continue;
     const marker = parseLocationMarker(comment.data);
     if (!marker) continue;
 
     if (marker.kind === 'start') {
+      const isNested = insideLocation;
+      insideLocation = true;
       openLocationName = marker.name;
-      replaceComment(comment, createBoundary(root, 'start', marker.name));
+      openLocationKey = marker.key;
+      isCurrentLocationValid = !isNested;
+      pendingItems = [];
+      pendingBoundaries = isNested ? [] : [{ comment, kind: 'start', name: marker.name }];
       continue;
     }
 
-    const name = marker.id ? displayNameFromID(marker.id) : openLocationName ?? 'DictateBar location';
-    replaceComment(comment, createBoundary(root, 'end', name));
+    const matchesOpenLocation = !marker.key || marker.key === openLocationKey;
+    if (insideLocation && isCurrentLocationValid && matchesOpenLocation) {
+      const name = openLocationName ?? 'DictateBar location';
+      pendingBoundaries.push({ comment, kind: 'end', name });
+      for (const boundary of pendingBoundaries) {
+        replaceComment(boundary.comment, createBoundary(root, boundary.kind, boundary.name));
+      }
+      onManagedItems(pendingItems);
+    }
+    insideLocation = false;
     openLocationName = undefined;
+    openLocationKey = undefined;
+    isCurrentLocationValid = false;
+    pendingItems = [];
+    pendingBoundaries = [];
   }
-  return openLocationName;
+  return insideLocation
+    ? { insideLocation, openLocationName, openLocationKey, isCurrentLocationValid, pendingItems, pendingBoundaries }
+    : { insideLocation: false, isCurrentLocationValid: false, pendingItems: [], pendingBoundaries: [] };
 }
 
 function parseLocationMarker(source: string): LocationMarker | null {
@@ -39,10 +91,10 @@ function parseLocationMarker(source: string): LocationMarker | null {
   if (marker === 'dictatebar:end') return { kind: 'end' };
 
   const legacyStart = /^dictatebar:start id="([A-Za-z0-9][A-Za-z0-9-]*)"$/.exec(marker);
-  if (legacyStart) return { kind: 'start', name: displayNameFromID(legacyStart[1]) };
+  if (legacyStart) return { kind: 'start', name: displayNameFromID(legacyStart[1]), key: `legacy:${legacyStart[1]}` };
 
   const legacyEnd = /^dictatebar:end id="([A-Za-z0-9][A-Za-z0-9-]*)"$/.exec(marker);
-  if (legacyEnd) return { kind: 'end', id: legacyEnd[1] };
+  if (legacyEnd) return { kind: 'end', key: `legacy:${legacyEnd[1]}` };
 
   const manualStart = /^dictatebar:start (.+)$/.exec(marker);
   if (!manualStart) return null;
@@ -56,7 +108,7 @@ function parseLocationMarker(source: string): LocationMarker | null {
     name.includes('\n') ||
     name.includes('\r')
   ) return null;
-  return { kind: 'start', name };
+  return { kind: 'start', name, key: `manual:${name}` };
 }
 
 function displayNameFromID(id: string): string {

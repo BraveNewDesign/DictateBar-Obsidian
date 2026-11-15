@@ -28,6 +28,8 @@ test('rendering preserves links, tasks, source order, and is idempotent', () => 
   const dom = new JSDOM(`<ul><li>[2026-09-13T12:00:00Z] <strong>Hello</strong> <a href="note">note</a></li><li><p><input type="checkbox" checked> [9/13/2026, 1:00 PM] Done</p></li><li>Untimestamped</li><li><code>[2026-09-13T12:00:00Z]</code> example</li></ul>`);
   Object.assign(globalThis, { Node: dom.window.Node });
   const root = dom.window.document.body;
+  root.insertBefore(dom.window.document.createComment(' dictatebar:start id="test" '), root.firstChild);
+  root.append(dom.window.document.createComment(' dictatebar:end id="test" '));
   decorateTimestamps(root);
   const first = root.innerHTML;
   decorateTimestamps(root);
@@ -38,6 +40,61 @@ test('rendering preserves links, tasks, source order, and is idempotent', () => 
   assert.equal(root.querySelector('input')?.checked, true);
   assert.equal(root.querySelectorAll('li')[2].textContent, 'Untimestamped');
   assert.equal(root.querySelector('code')?.textContent, '[2026-09-13T12:00:00Z]');
+});
+
+test('timestamps outside managed locations are left unchanged', () => {
+  const dom = new JSDOM('<div id="note"></div>');
+  const root = dom.window.document.querySelector<HTMLElement>('#note')!;
+  const outsideBefore = dom.window.document.createElement('li');
+  outsideBefore.textContent = '[2026-09-13T12:00:00Z] outside before';
+  root.append(outsideBefore);
+  root.append(dom.window.document.createComment(' dictatebar:start id="managed" '));
+  const inside = dom.window.document.createElement('li');
+  inside.textContent = '[2026-09-13T12:01:00Z] inside';
+  root.append(inside);
+  root.append(dom.window.document.createComment(' dictatebar:end id="managed" '));
+  const outsideAfter = dom.window.document.createElement('li');
+  outsideAfter.textContent = '[2026-09-13T12:02:00Z] outside after';
+  root.append(outsideAfter);
+
+  decorateTimestamps(root);
+
+  assert.equal(root.querySelectorAll('time').length, 1);
+  assert.equal(outsideBefore.querySelector('time'), null);
+  assert.equal(inside.querySelector('time')?.getAttribute('datetime'), '2026-09-13T12:01:00.000Z');
+  assert.equal(outsideAfter.querySelector('time'), null);
+});
+
+test('unclosed and mismatched markers do not change content inside an invalid location', () => {
+  for (const ending of [null, ' dictatebar:end id="other" ']) {
+    const dom = new JSDOM('<div id="note"></div>');
+    const root = dom.window.document.querySelector<HTMLElement>('#note')!;
+    root.append(dom.window.document.createComment(' dictatebar:start id="managed" '));
+    const entry = dom.window.document.createElement('li');
+    entry.textContent = '[2026-09-13T12:01:00Z] invalid region';
+    root.append(entry);
+    if (ending) root.append(dom.window.document.createComment(ending));
+
+    decorateTimestamps(root);
+
+    assert.equal(root.querySelector('time'), null);
+    assert.equal(root.querySelector('.dictatebar-location-boundary'), null);
+    assert.match(entry.textContent ?? '', /^\[2026-09-13T12:01:00Z\]/);
+  }
+});
+
+test('timestamps in a DictateBar code block are formatted across the block', () => {
+  const dom = new JSDOM('<div id="block"><ul><li>[2026-09-13T12:00:00Z] block entry</li></ul></div>');
+  const root = dom.window.document.querySelector<HTMLElement>('#block')!;
+
+  decorateTimestamps(root, {
+    insideLocation: false,
+    isCurrentLocationValid: false,
+    pendingItems: [],
+    pendingBoundaries: [],
+  }, true);
+
+  assert.equal(root.querySelectorAll('time').length, 1);
 });
 
 test('rendering labels DictateBar location boundaries without changing source comments', () => {
@@ -81,11 +138,32 @@ test('manual-name labels carry across separate rendered sections', () => {
   start.append(dom.window.document.createComment(' dictatebar:start Weekly Review '));
   end.append(dom.window.document.createComment(' dictatebar:end '));
 
-  const openName = decorateTimestamps(start);
-  decorateTimestamps(end, openName);
+  const openLocationState = decorateTimestamps(start);
+  decorateTimestamps(end, openLocationState);
 
   assert.equal(start.querySelector('[role="separator"]')?.getAttribute('aria-label'), 'Start of Weekly Review');
   assert.equal(end.querySelector('[role="separator"]')?.getAttribute('aria-label'), 'End of Weekly Review');
+});
+
+test('timestamp entries carry across rendered sections until the matching end marker', () => {
+  const dom = new JSDOM('<div id="start"></div><div id="content"></div><div id="end"></div>');
+  const start = dom.window.document.querySelector<HTMLElement>('#start')!;
+  const content = dom.window.document.querySelector<HTMLElement>('#content')!;
+  const end = dom.window.document.querySelector<HTMLElement>('#end')!;
+  start.append(dom.window.document.createComment(' dictatebar:start id="weekly-review" '));
+  const entry = dom.window.document.createElement('li');
+  entry.textContent = '[2026-09-13T12:01:00Z] managed entry';
+  content.append(entry);
+  end.append(dom.window.document.createComment(' dictatebar:end id="weekly-review" '));
+
+  const afterStart = decorateTimestamps(start);
+  const beforeEnd = decorateTimestamps(content, afterStart);
+  assert.equal(entry.querySelector('time'), null);
+  decorateTimestamps(end, beforeEnd);
+
+  assert.equal(entry.querySelector('time')?.getAttribute('datetime'), '2026-09-13T12:01:00.000Z');
+  assert.equal(start.querySelector('.dictatebar-location-boundary')?.getAttribute('aria-label'), 'Start of Weekly Review');
+  assert.equal(end.querySelector('.dictatebar-location-boundary')?.getAttribute('aria-label'), 'End of Weekly Review');
 });
 
 test('marker-like comments in code blocks remain untouched', () => {

@@ -7,7 +7,8 @@ DictateBar for Obsidian is a small TypeScript community plugin that improves the
 - Keep this project focused on rendering DictateBar location boundaries, timestamps, and Markdown in Obsidian.
 - The plugin does not capture dictation, modify vault files, make network requests, or manage purchases or settings.
 - Preserve the Markdown source, insertion markers, entry order, and ordinary Obsidian task behavior.
-- Render supported insertion marker comments as accessible visual start/end boundaries without changing their source text.
+- Render complete, matching insertion marker pairs as accessible visual start/end boundaries without changing their source text.
+- Format timestamps only inside a valid DictateBar insertion location or the dedicated `dictatebar` fenced block. Leave timestamps elsewhere in a note unchanged.
 - Keep the plugin compatible with the minimum Obsidian version in `manifest.json` unless a version change is explicitly intended.
 - Do not add dependencies or expand plugin capabilities without keeping the README and privacy description accurate.
 
