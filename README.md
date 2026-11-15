@@ -1,7 +1,5 @@
 # Dictate Bar for Obsidian
 
-![Dictate Bar app icon and wordmark](assets/branding/dictate-bar-wordmark.png)
-
 A small companion plugin that brings Dictate Bar's readable dictations into an Obsidian vault. Dictate Bar captures and saves your words; Obsidian displays the same Markdown with friendlier dates.
 
 ![Dictate Bar in Obsidian: readable timestamps, preserved Markdown, and customizable display options](assets/screenshots/dictate-bar-in-obsidian.png)
@@ -113,3 +111,5 @@ When reporting a problem, include your Obsidian and plugin versions, what happen
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE).
+
+![Dictate Bar app icon and wordmark](assets/branding/dictate-bar-wordmark.png)
