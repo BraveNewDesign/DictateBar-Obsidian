@@ -1,16 +1,10 @@
 # Changelog
 
-## Unreleased
-
-- Display timestamps in bold at the same size as entry text, without a separator, while retaining the original timestamp on hover.
-- Fix Reading view formatting using Obsidian source sections, with compact local timestamps and a separator. Verified in Obsidian on macOS.
-
-- Render DictateBar insertion markers as labeled start/end separators in Markdown preview.
-- Limit timestamp formatting to managed insertion locations and `dictatebar` fenced blocks.
-
 ## 0.1.0
 
-- Initial local DictateBar companion for Obsidian.
-- Display friendly timestamps on existing DictateBar bullets and tasks without modifying note files or insertion markers.
+- Display Dictate Bar timestamps as bold, localized dates and times in Reading view, with the original timestamp available on hover.
+- Show accessible start and end separators for named insertion locations; control each separator in settings.
+- Choose date and time formats and reset display settings to their defaults.
 - Render optional `dictatebar` fenced blocks with native Markdown and read-only tasks.
-- Verified production build and five parser/DOM tests. Obsidian runtime, Live Preview, and mobile verification pending.
+- Add plugin guidance and support links in settings.
+- Support Obsidian 1.15.1 and later on desktop. Reading view has been verified on macOS; mobile is not supported in this release.

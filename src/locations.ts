@@ -66,7 +66,7 @@ export function decorateLocationMarkers(
 
     const matchesOpenLocation = !marker.key || marker.key === openLocationKey;
     if (insideLocation && isCurrentLocationValid && matchesOpenLocation) {
-      const name = openLocationName ?? 'DictateBar location';
+      const name = openLocationName ?? 'Dictate Bar location';
       pendingBoundaries.push({ comment, kind: 'end', name });
       for (const boundary of pendingBoundaries) {
         replaceComment(boundary.comment, createBoundary(root, boundary.kind, boundary.name));

@@ -1,3 +1,4 @@
+import { DEFAULT_SETTINGS, type DictateBarSettings } from './preferences.ts';
 import { createBoundary, parseLocationMarker } from './locations.ts';
 import { decorateTimestamp } from './render.ts';
 
@@ -37,18 +38,18 @@ export function locationsInSource(source: string): Region[] {
   return open ? [] : regions;
 }
 
-export function decorateSourceSection(element: HTMLElement, source: string, lineStart: number, lineEnd: number): void {
+export function decorateSourceSection(element: HTMLElement, source: string, lineStart: number, lineEnd: number, settings: DictateBarSettings = DEFAULT_SETTINGS): void {
   const regions = locationsInSource(source);
   for (const region of regions) {
     if (lineStart === lineEnd && (lineStart === region.start || lineStart === region.end)) {
       const kind = lineStart === region.start ? 'start' : 'end';
-      if (!element.querySelector('.dictatebar-location-boundary')) element.append(createBoundary(element, kind, region.name));
+      if ((kind === 'start' ? settings.showStartSeparator : settings.showEndSeparator) && !element.querySelector('.dictatebar-location-boundary')) element.append(createBoundary(element, kind, region.name));
     }
   }
   element.querySelectorAll<HTMLElement>('li[data-line]').forEach(item => {
     const offset = Number(item.getAttribute('data-line'));
     if (!Number.isInteger(offset) || offset < 0) return;
     const line = lineStart + offset;
-    if (line <= lineEnd && regions.some(region => line > region.start && line < region.end)) decorateTimestamp(item);
+    if (line <= lineEnd && regions.some(region => line > region.start && line < region.end)) decorateTimestamp(item, settings);
   });
 }

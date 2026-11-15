@@ -1,3 +1,5 @@
+import { DEFAULT_SETTINGS, type DictateBarSettings } from './preferences.ts';
+
 /** Current ISO storage format and the app's older US numeric display format. */
 export function parseTimestamp(value: string): Date | null {
   const iso = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})$/.exec(value);
@@ -32,8 +34,19 @@ export function leadingTimestamp(text: string): { raw: string; date: Date; lengt
   return date ? { raw: match[1], date, length: match[0].length } : null;
 }
 
-export function prettyTimestamp(date: Date, locale?: string): string {
-  const day = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'numeric', day: 'numeric' }).format(date);
-  const time = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(date);
+export function prettyTimestamp(date: Date, locale?: string, settings: DictateBarSettings = DEFAULT_SETTINGS): string {
+  const two = (number: number) => String(number).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const dayOfMonth = date.getDate();
+  const day = settings.dateFormat === 'month-first' ? `${month}/${dayOfMonth}/${year}`
+    : settings.dateFormat === 'day-first' ? `${two(dayOfMonth)}/${two(month)}/${year}`
+    : settings.dateFormat === 'iso' ? `${year}-${two(month)}-${two(dayOfMonth)}`
+    : new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'numeric', day: 'numeric' }).format(date);
+  const time = new Intl.DateTimeFormat(locale, {
+    hour: settings.timeFormat === '24-hour' ? '2-digit' : 'numeric',
+    minute: '2-digit',
+    ...(settings.timeFormat === 'locale' ? {} : { hourCycle: settings.timeFormat === '24-hour' ? 'h23' : 'h12' }),
+  }).format(date);
   return `${day} ${time}`;
 }

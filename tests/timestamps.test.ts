@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { leadingTimestamp, parseTimestamp, prettyTimestamp } from '../src/timestamps.ts';
 import { decorateTimestamps } from '../src/render.ts';
 import { JSDOM } from 'jsdom';
+import { DEFAULT_SETTINGS, normalizeSettings } from '../src/preferences.ts';
 import { decorateSourceSection, locationsInSource } from '../src/sections.ts';
 
 test('ISO timestamps preserve the recorded instant across offsets', () => {
@@ -201,4 +202,44 @@ test('source validation ignores fenced examples and rejects mismatched or duplic
   assert.equal(locationsInSource('```\n<!-- dictatebar:start ignored -->\n```\n' + valid).length, 1);
   assert.equal(locationsInSource(valid + '\n' + valid).length, 0);
   assert.equal(locationsInSource('<!-- dictatebar:start id="a" -->\n<!-- dictatebar:end id="b" -->').length, 0);
+});
+
+
+test('settings validate stored preferences and retain existing defaults', () => {
+  assert.deepEqual(normalizeSettings(null), DEFAULT_SETTINGS);
+  assert.deepEqual(normalizeSettings({ showStartSeparator: false, showEndSeparator: 'no', dateFormat: 'invalid', timeFormat: '24-hour' }), {
+    ...DEFAULT_SETTINGS, showStartSeparator: false, timeFormat: '24-hour',
+  });
+});
+
+test('date and time format choices use the local calendar and support midnight', () => {
+  const date = new Date(2026, 9, 21, 0, 31);
+  const settings = { ...DEFAULT_SETTINGS, timeFormat: '24-hour' as const };
+  assert.equal(prettyTimestamp(date, 'en-US', { ...settings, dateFormat: 'month-first' }), '10/21/2026 00:31');
+  assert.equal(prettyTimestamp(date, 'en-US', { ...settings, dateFormat: 'day-first' }), '21/10/2026 00:31');
+  assert.equal(prettyTimestamp(date, 'en-US', { ...settings, dateFormat: 'iso' }), '2026-10-21 00:31');
+  assert.equal(prettyTimestamp(date, 'en-US', { ...settings, dateFormat: 'iso', timeFormat: '12-hour' }), '2026-10-21 12:31 AM');
+});
+
+test('separator settings independently control boundaries while entries stay formatted', () => {
+  const source = '<!-- dictatebar:start Work -->\n- [2026-10-21T09:31:12-07:00] text\n<!-- dictatebar:end -->';
+  const dom = new JSDOM('<div id="start"></div><div id="entry"><ul><li data-line="0"><span class="list-bullet"></span>[2026-10-21T09:31:12-07:00] text</li></ul></div><div id="end"></div>');
+  const start = dom.window.document.querySelector<HTMLElement>('#start')!;
+  const entry = dom.window.document.querySelector<HTMLElement>('#entry')!;
+  const end = dom.window.document.querySelector<HTMLElement>('#end')!;
+  const settings = { ...DEFAULT_SETTINGS, showStartSeparator: false, showEndSeparator: true, dateFormat: 'iso' as const, timeFormat: '24-hour' as const };
+  decorateSourceSection(start, source, 0, 0, settings);
+  decorateSourceSection(entry, source, 1, 1, settings);
+  decorateSourceSection(end, source, 2, 2, settings);
+  assert.equal(start.querySelector('[role="separator"]'), null);
+  assert.equal(end.querySelector('[role="separator"]')?.getAttribute('aria-label'), 'End of Work');
+  assert.match(entry.querySelector('time')!.textContent!, /^2026-10-21 \d{2}:\d{2}$/);
+  assert.equal(entry.querySelector('time')!.title, '2026-10-21T09:31:12-07:00');
+});
+
+test('fenced block entries use the selected timestamp formats', () => {
+  const dom = new JSDOM('<div><ul><li>[2026-10-21T09:31:12-07:00] entry</li></ul></div>');
+  const root = dom.window.document.querySelector<HTMLElement>('div')!;
+  decorateTimestamps(root, undefined, true, { ...DEFAULT_SETTINGS, dateFormat: 'iso', timeFormat: '24-hour' });
+  assert.match(root.querySelector('time')!.textContent!, /^2026-10-21 \d{2}:\d{2}$/);
 });

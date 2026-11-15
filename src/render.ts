@@ -1,3 +1,4 @@
+import { DEFAULT_SETTINGS, type DictateBarSettings } from './preferences.ts';
 import { leadingTimestamp, prettyTimestamp } from './timestamps.ts';
 import { decorateLocationMarkers, type LocationRenderState } from './locations.ts';
 
@@ -10,15 +11,16 @@ export function decorateTimestamps(
     pendingBoundaries: [],
   },
   formatWholeBlock = false,
+  settings: DictateBarSettings = DEFAULT_SETTINGS,
 ): LocationRenderState {
   if (formatWholeBlock) {
-    root.querySelectorAll<HTMLElement>('li').forEach(decorateTimestamp);
+    root.querySelectorAll<HTMLElement>('li').forEach(item => decorateTimestamp(item, settings));
     return locationState;
   }
-  return decorateLocationMarkers(root, locationState, items => items.forEach(decorateTimestamp));
+  return decorateLocationMarkers(root, locationState, items => items.forEach(item => decorateTimestamp(item, settings)));
 }
 
-export function decorateTimestamp(item: HTMLElement): void {
+export function decorateTimestamp(item: HTMLElement, settings: DictateBarSettings = DEFAULT_SETTINGS): void {
   // Only leading timestamps on Markdown list items qualify; ordinary prose,
   // examples, inline code, and unknown bracketed text remain untouched.
   if (item.closest('pre, code') || item.querySelector(':scope > .dictatebar-timestamp')) return;
@@ -39,7 +41,7 @@ export function decorateTimestamp(item: HTMLElement): void {
     const time = container.ownerDocument.createElement('time');
     time.className = 'dictatebar-timestamp';
     time.dateTime = timestamp.date.toISOString();
-    time.textContent = prettyTimestamp(timestamp.date);
+    time.textContent = prettyTimestamp(timestamp.date, undefined, settings);
     time.title = timestamp.raw;
     time.setAttribute('aria-label', `Dictated ${time.textContent}`);
     const tail = container.ownerDocument.createTextNode(text.slice(whitespace + timestamp.length));
