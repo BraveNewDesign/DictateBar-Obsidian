@@ -42,7 +42,7 @@ export function decorateTimestamp(item: HTMLElement): void {
     time.textContent = prettyTimestamp(timestamp.date);
     time.title = timestamp.raw;
     time.setAttribute('aria-label', `Dictated ${time.textContent}`);
-    const tail = container.ownerDocument.createTextNode(` |${text.slice(whitespace + timestamp.length)}`);
+    const tail = container.ownerDocument.createTextNode(text.slice(whitespace + timestamp.length));
     node.replaceWith(time, tail);
     item.classList.add('dictatebar-entry');
     return;

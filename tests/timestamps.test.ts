@@ -186,7 +186,9 @@ test('source sections decorate Obsidian list bullets and preserve entries outsid
   decorateSourceSection(section, source, 1, 1);
   decorateSourceSection(section, source, 1, 1);
   assert.equal(section.querySelectorAll('time').length, 1);
-  assert.match(section.textContent!, / \| Hello/);
+  assert.match(section.textContent!, / Hello/);
+  assert.doesNotMatch(section.textContent!, /\|/);
+  assert.equal(section.querySelector('time')?.title, '2026-10-21T09:31:12-07:00');
   assert.equal(section.querySelector('strong')?.textContent, 'Hello');
   const outside = section.cloneNode(true) as HTMLElement;
   outside.querySelector('li')!.innerHTML = '<span class="list-bullet"></span>[2026-10-21T09:31:12-07:00] outside';

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Display timestamps in bold at the same size as entry text, without a separator, while retaining the original timestamp on hover.
 - Fix Reading view formatting using Obsidian source sections, with compact local timestamps and a separator. Verified in Obsidian on macOS.
 
 - Render DictateBar insertion markers as labeled start/end separators in Markdown preview.
