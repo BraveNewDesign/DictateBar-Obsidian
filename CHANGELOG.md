@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Render DictateBar insertion markers as labeled start/end separators in Markdown preview.
+
 ## 0.1.0
 
 - Initial local DictateBar companion for Obsidian.

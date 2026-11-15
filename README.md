@@ -19,7 +19,7 @@ Existing DictateBar bullets and checkboxes work without conversion:
 <!-- dictatebar:end id="meeting-notes" -->
 ```
 
-Obsidian already hides the insertion comments when rendering Markdown. This plugin leaves those comments intact so DictateBar can continue finding its insertion locations. It displays valid timestamps as localized dates and times, for example `Sep 13, 2026, 7:30 PM`. Hover over a date to see its original timestamp.
+The plugin keeps the insertion comments in the Markdown source so DictateBar can continue finding its locations. It presents the start as a named heading with a rule extending to the right, and the end as **End of Meeting Notes** centered between two rules, following DictateBar's viewer treatment. For ID-based markers, it turns the stable ID into a readable label; manual-name markers display their exact name. Valid timestamps appear as localized dates and times, for example `Sep 13, 2026, 7:30 PM`. Hover over a date to see its original timestamp.
 
 Current ISO timestamps include an offset and display in the device's local time zone. Older `9/13/2026, 7:30 PM` timestamps are interpreted as local time, matching DictateBar's legacy format. Invalid or omitted timestamps remain as written. Entries stay in source order.
 
@@ -53,6 +53,7 @@ Until the plugin is listed in Obsidian's Community Plugins directory, install it
 ## Scope
 
 - Native Markdown rendering, including emphasis, links, bullets, and tasks.
+- Clearly labeled start and end boundaries for DictateBar insertion locations.
 - Readable timestamps on DictateBar-style list entries, also supporting older dates.
 - Optional `dictatebar` code blocks with theme-aware spacing.
 - No settings, capture, purchases, filtering, network requests, or vault writes.

@@ -1,6 +1,8 @@
 import { leadingTimestamp, prettyTimestamp } from './timestamps.ts';
+import { decorateLocationMarkers } from './locations.ts';
 
-export function decorateTimestamps(root: HTMLElement): void {
+export function decorateTimestamps(root: HTMLElement, openLocationName?: string): string | undefined {
+  const nextOpenLocationName = decorateLocationMarkers(root, openLocationName);
   // Only leading timestamps on Markdown list items qualify; ordinary prose,
   // examples, inline code, and unknown bracketed text remain untouched.
   root.querySelectorAll<HTMLElement>('li').forEach(item => {
@@ -31,4 +33,5 @@ export function decorateTimestamps(root: HTMLElement): void {
       return;
     }
   });
+  return nextOpenLocationName;
 }

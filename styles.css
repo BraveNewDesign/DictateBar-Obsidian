@@ -5,6 +5,33 @@
   font-variant-numeric: tabular-nums;
   margin-inline-end: 0.45em;
 }
+.dictatebar-location-boundary {
+  align-items: center;
+  color: var(--text-muted);
+  display: flex;
+  font-size: var(--font-smaller);
+  gap: 0.75em;
+  line-height: 1.35;
+  margin-block: 1em;
+  text-align: center;
+}
+.dictatebar-location-boundary::before,
+.dictatebar-location-boundary::after {
+  border-block-start: 1px solid var(--background-modifier-border);
+  content: "";
+  flex: 1 1 auto;
+  min-width: 1.5em;
+}
+.dictatebar-location-boundary-label {
+  max-width: min(70%, 32em);
+}
+.dictatebar-location-boundary--start {
+  justify-content: flex-start;
+  margin-block: 1.25em 0.5em;
+  text-align: start;
+}
+.dictatebar-location-boundary--start::before { display: none; }
+.dictatebar-location-boundary--end { margin-block: 0.5em 1em; }
 .dictatebar-block {
   padding-block: 0.25rem;
   overflow-wrap: anywhere;
@@ -15,4 +42,5 @@
 .dictatebar-block input[type="checkbox"]:disabled { opacity: 1; }
 @media (max-width: 480px) {
   .dictatebar-block .dictatebar-timestamp { display: block; margin-block-end: 0.2em; }
+  .dictatebar-location-boundary { gap: 0.5em; }
 }

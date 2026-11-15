@@ -39,3 +39,62 @@ test('rendering preserves links, tasks, source order, and is idempotent', () => 
   assert.equal(root.querySelectorAll('li')[2].textContent, 'Untimestamped');
   assert.equal(root.querySelector('code')?.textContent, '[2026-09-13T12:00:00Z]');
 });
+
+test('rendering labels DictateBar location boundaries without changing source comments', () => {
+  const dom = new JSDOM('<div id="note"></div>');
+  const root = dom.window.document.querySelector<HTMLElement>('#note')!;
+  root.append(dom.window.document.createComment(' dictatebar:start id="meeting-notes" '));
+  const paragraph = dom.window.document.createElement('p');
+  paragraph.textContent = 'Dictation';
+  root.append(paragraph);
+  root.append(dom.window.document.createComment(' dictatebar:end id="meeting-notes" '));
+
+  decorateTimestamps(root);
+
+  assert.deepEqual(Array.from(root.querySelectorAll('[role="separator"]')).map(element => element.getAttribute('aria-label')), [
+    'Start of Meeting Notes',
+    'End of Meeting Notes',
+  ]);
+  assert.equal(root.textContent, 'Start of Meeting NotesDictationEnd of Meeting Notes');
+  assert.equal(root.querySelectorAll('p').length, 1);
+  assert.equal(root.querySelectorAll('.dictatebar-location-boundary').length, 2);
+});
+
+test('manual-name markers use the exact name and unnamed end marker closes the visible location', () => {
+  const dom = new JSDOM('<div id="note"></div>');
+  const root = dom.window.document.querySelector<HTMLElement>('#note')!;
+  root.append(dom.window.document.createComment(' dictatebar:start Weekly Review '));
+  root.append(dom.window.document.createComment(' dictatebar:end '));
+
+  decorateTimestamps(root);
+
+  assert.deepEqual(Array.from(root.querySelectorAll('[role="separator"]')).map(element => element.getAttribute('aria-label')), [
+    'Start of Weekly Review',
+    'End of Weekly Review',
+  ]);
+});
+
+test('manual-name labels carry across separate rendered sections', () => {
+  const dom = new JSDOM('<div id="start"></div><div id="end"></div>');
+  const start = dom.window.document.querySelector<HTMLElement>('#start')!;
+  const end = dom.window.document.querySelector<HTMLElement>('#end')!;
+  start.append(dom.window.document.createComment(' dictatebar:start Weekly Review '));
+  end.append(dom.window.document.createComment(' dictatebar:end '));
+
+  const openName = decorateTimestamps(start);
+  decorateTimestamps(end, openName);
+
+  assert.equal(start.querySelector('[role="separator"]')?.getAttribute('aria-label'), 'Start of Weekly Review');
+  assert.equal(end.querySelector('[role="separator"]')?.getAttribute('aria-label'), 'End of Weekly Review');
+});
+
+test('marker-like comments in code blocks remain untouched', () => {
+  const dom = new JSDOM('<div id="note"><pre></pre></div>');
+  const root = dom.window.document.querySelector<HTMLElement>('#note')!;
+  root.querySelector('pre')!.append(dom.window.document.createComment(' dictatebar:start id="example" '));
+
+  decorateTimestamps(root);
+
+  assert.equal(root.querySelectorAll('.dictatebar-location-boundary').length, 0);
+  assert.equal(root.querySelector('pre')?.childNodes.length, 1);
+});

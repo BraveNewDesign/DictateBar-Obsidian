@@ -2,6 +2,8 @@ import { MarkdownRenderChild, MarkdownRenderer, Plugin } from 'obsidian';
 import { decorateTimestamps } from './render';
 
 export default class DictateBarPlugin extends Plugin {
+  private readonly openLocationNamesByDocument = new Map<string, string>();
+
   onload(): void {
     this.registerMarkdownCodeBlockProcessor('dictatebar', async (source, element, context) => {
       const child = new MarkdownRenderChild(element);
@@ -16,6 +18,11 @@ export default class DictateBarPlugin extends Plugin {
         input.setAttribute('aria-label', input.checked ? 'Completed dictation' : 'Incomplete dictation');
       });
     });
-    this.registerMarkdownPostProcessor(element => decorateTimestamps(element));
+    this.registerMarkdownPostProcessor((element, context) => {
+      const openLocationName = this.openLocationNamesByDocument.get(context.docId);
+      const nextOpenLocationName = decorateTimestamps(element, openLocationName);
+      if (nextOpenLocationName) this.openLocationNamesByDocument.set(context.docId, nextOpenLocationName);
+      else this.openLocationNamesByDocument.delete(context.docId);
+    });
   }
 }
