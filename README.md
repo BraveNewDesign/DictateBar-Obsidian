@@ -1,10 +1,22 @@
 # Dictate Bar for Obsidian
 
+![Dictate Bar app icon and wordmark](assets/branding/dictate-bar-wordmark.png)
+
 A small companion plugin that brings Dictate Bar's readable dictations into an Obsidian vault. Dictate Bar captures and saves your words; Obsidian displays the same Markdown with friendlier dates.
 
 The goal is a reading experience inspired by Dictate Bar's Dictations Viewer. Entries begin with a bold, readable timestamp, for example **10/21/2026 9:31 AM** Shipped the routing fix, with presentation adapted to the reader's locale and time zone. Keep the note's Markdown and Obsidian's normal editing and task behavior intact.
 
 **Compatibility:** Requires Obsidian 1.15.1 or later on desktop. Reading view has been verified on macOS; Windows, Linux, Live Preview, and PDF export have not yet been verified. Mobile is not supported in this release.
+
+## See it in action
+
+![The same Daily Notes file in Obsidian, with formatted timestamps in Reading view on the left and the original Markdown in editing view on the right](assets/screenshots/editing-and-reading.png)
+
+Reading view shows friendly timestamps while the Markdown source retains the original timestamps and insertion markers. The optional location separators are hidden in this example.
+
+![Dictate Bar's menu bar controls open above an Obsidian Reading view of the same Daily Notes file](assets/screenshots/dictate-bar-and-obsidian.png)
+
+Capture into a note with Dictate Bar, then read it in Obsidian.
 
 ## Use with Dictate Bar
 
@@ -30,6 +42,8 @@ Current ISO timestamps include an offset and display in the device's local time 
 ## Display settings
 
 Under Settings → Community plugins → Dictate Bar, independently show or hide the start and end separators. Choose the system locale or a month-first, day-first, or ISO-style date, and choose the system locale, 12-hour, or 24-hour time. Defaults match the original display: both separators are visible and the device locale controls the date and time. Dates and times use the device's local time zone; these settings never change the Markdown source. Select **Reset to defaults** to restore both separators and the system date and time formats.
+
+![Dictate Bar plugin settings in Obsidian, showing separator toggles, date and time formats, reset, and support links](assets/screenshots/settings.png)
 
 ## Optional dictation code block
 
