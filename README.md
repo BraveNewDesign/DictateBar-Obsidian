@@ -4,6 +4,10 @@
 
 A small companion plugin that brings Dictate Bar's readable dictations into an Obsidian vault. Dictate Bar captures and saves your words; Obsidian displays the same Markdown with friendlier dates.
 
+![Dictate Bar in Obsidian: readable timestamps, preserved Markdown, and customizable display options](assets/screenshots/dictate-bar-in-obsidian.png)
+
+![Dictate Bar entries displayed alongside existing notes and images in Obsidian](assets/screenshots/dictate-bar-and-obsidian-together.png)
+
 The goal is a reading experience inspired by Dictate Bar's Dictations Viewer. Entries begin with a bold, readable timestamp, for example **10/21/2026 9:31 AM** Shipped the routing fix, with presentation adapted to the reader's locale and time zone. Keep the note's Markdown and Obsidian's normal editing and task behavior intact.
 
 **Compatibility:** Requires Obsidian 1.15.1 or later on desktop. Reading view has been verified on macOS; Windows, Linux, Live Preview, and PDF export have not yet been verified. Mobile is not supported in this release.
