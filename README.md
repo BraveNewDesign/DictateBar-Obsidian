@@ -2,6 +2,10 @@
 
 A small companion plugin that brings DictateBar's readable dictations into an Obsidian vault. DictateBar captures and saves your words; Obsidian displays the same Markdown with friendlier dates.
 
+The goal is a reading experience inspired by DictateBar's Dictations Viewer. The essential improvement is a compact, readable timestamp and separator before each entry, for example `10/21/2026 9:31am | Shipped the routing fix`, with presentation adapted to the reader's locale and time zone. Keep the note's Markdown and Obsidian's normal editing and task behavior intact.
+
+**Current status:** The formatting has been verified in Obsidian Reading view on macOS for a note with two ID-based locations and three entries. Live Preview, mobile, and PDF export remain unverified.
+
 ## Use with DictateBar
 
 1. Keep a Markdown note inside your Obsidian vault.
@@ -19,7 +23,7 @@ Existing DictateBar bullets and checkboxes work without conversion:
 <!-- dictatebar:end id="meeting-notes" -->
 ```
 
-The plugin keeps the insertion comments in the Markdown source so DictateBar can continue finding its locations. For complete, matching marker pairs, it presents the start as a named heading with a rule extending to the right, and the end as **End of Meeting Notes** centered between two rules, following DictateBar's viewer treatment. For ID-based markers, it turns the stable ID into a readable label; manual-name markers display their exact name. Inside a managed location, valid timestamps appear as localized dates and times, for example `Sep 13, 2026, 7:30 PM`. Hover over a date to see its original timestamp.
+The plugin keeps insertion comments in the Markdown source so DictateBar can continue finding its locations. For complete, matching marker pairs, it shows the start as a named heading with a rule extending to the right, and the end as **End of Meeting Notes** centered between two rules, following DictateBar's viewer treatment. For ID-based markers, it turns the stable ID into a readable label; manual-name markers display their exact name. Inside a managed location, valid timestamps appear as compact localized dates and times followed by a separator. Hover over a date to see its original timestamp.
 
 Current ISO timestamps include an offset and display in the device's local time zone. Older `9/13/2026, 7:30 PM` timestamps are interpreted as local time, matching DictateBar's legacy format. Invalid or omitted timestamps remain as written. Entries stay in source order. These formatting rules apply only inside a managed location or a `dictatebar` fenced block; matching timestamps elsewhere in the note are left alone.
 
@@ -74,7 +78,7 @@ npm run build
 
 `npm run dev` watches and rebuilds `main.js`. Runtime imports are limited to Obsidian's API; build and test dependencies aren't shipped in the plugin bundle.
 
-Validation: TypeScript check and production bundle passed; five focused tests passed for offset conversion, legacy times, invalid dates, readable dates, and DOM preservation/idempotence. Actual Obsidian runtime rendering remains unverified.
+Validation: TypeScript check, production bundle, and focused parser and rendering tests passed. The installed plugin was also verified in Obsidian Reading view on macOS; the original Markdown remained visible in the editing pane.
 
 ## License
 

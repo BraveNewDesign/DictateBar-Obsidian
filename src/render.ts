@@ -18,7 +18,7 @@ export function decorateTimestamps(
   return decorateLocationMarkers(root, locationState, items => items.forEach(decorateTimestamp));
 }
 
-function decorateTimestamp(item: HTMLElement): void {
+export function decorateTimestamp(item: HTMLElement): void {
   // Only leading timestamps on Markdown list items qualify; ordinary prose,
   // examples, inline code, and unknown bracketed text remain untouched.
   if (item.closest('pre, code') || item.querySelector(':scope > .dictatebar-timestamp')) return;
@@ -27,7 +27,7 @@ function decorateTimestamp(item: HTMLElement): void {
   for (const node of Array.from(container.childNodes)) {
     if (node.nodeType === Node.ELEMENT_NODE) {
       const element = node as HTMLElement;
-      if (element.matches('input[type="checkbox"]')) continue;
+      if (element.matches('input[type="checkbox"], .list-bullet')) continue;
       return;
     }
     if (node.nodeType !== Node.TEXT_NODE) continue;
@@ -42,7 +42,7 @@ function decorateTimestamp(item: HTMLElement): void {
     time.textContent = prettyTimestamp(timestamp.date);
     time.title = timestamp.raw;
     time.setAttribute('aria-label', `Dictated ${time.textContent}`);
-    const tail = container.ownerDocument.createTextNode(text.slice(whitespace + timestamp.length));
+    const tail = container.ownerDocument.createTextNode(` |${text.slice(whitespace + timestamp.length)}`);
     node.replaceWith(time, tail);
     item.classList.add('dictatebar-entry');
     return;

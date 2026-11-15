@@ -85,7 +85,7 @@ export function decorateLocationMarkers(
     : { insideLocation: false, isCurrentLocationValid: false, pendingItems: [], pendingBoundaries: [] };
 }
 
-function parseLocationMarker(source: string): LocationMarker | null {
+export function parseLocationMarker(source: string): LocationMarker | null {
   if (!source.startsWith(' dictatebar:') || !source.endsWith(' ')) return null;
   const marker = source.slice(1, -1);
   if (marker === 'dictatebar:end') return { kind: 'end' };
@@ -115,7 +115,7 @@ function displayNameFromID(id: string): string {
   return id.split('-').filter(Boolean).map(part => part[0].toUpperCase() + part.slice(1)).join(' ');
 }
 
-function createBoundary(root: HTMLElement, kind: 'start' | 'end', name: string): HTMLElement {
+export function createBoundary(root: HTMLElement, kind: 'start' | 'end', name: string): HTMLElement {
   const document = root.ownerDocument;
   const boundary = document.createElement('div');
   const label = `${kind === 'start' ? 'Start' : 'End'} of ${name}`;

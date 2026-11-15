@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix Reading view formatting using Obsidian source sections, with compact local timestamps and a separator. Verified in Obsidian on macOS.
+
 - Render DictateBar insertion markers as labeled start/end separators in Markdown preview.
 - Limit timestamp formatting to managed insertion locations and `dictatebar` fenced blocks.
 

@@ -1,10 +1,8 @@
 import { MarkdownRenderChild, MarkdownRenderer, Plugin } from 'obsidian';
 import { decorateTimestamps } from './render';
-import type { LocationRenderState } from './locations';
+import { decorateSourceSection } from './sections';
 
 export default class DictateBarPlugin extends Plugin {
-  private readonly locationStatesByDocument = new Map<string, LocationRenderState>();
-
   onload(): void {
     this.registerMarkdownCodeBlockProcessor('dictatebar', async (source, element, context) => {
       const child = new MarkdownRenderChild(element);
@@ -25,15 +23,9 @@ export default class DictateBarPlugin extends Plugin {
       });
     });
     this.registerMarkdownPostProcessor((element, context) => {
-      const locationState = this.locationStatesByDocument.get(context.docId) ?? {
-        insideLocation: false,
-        isCurrentLocationValid: false,
-        pendingItems: [],
-        pendingBoundaries: [],
-      };
-      const nextLocationState = decorateTimestamps(element, locationState);
-      if (nextLocationState.insideLocation) this.locationStatesByDocument.set(context.docId, nextLocationState);
-      else this.locationStatesByDocument.delete(context.docId);
+      const section = context.getSectionInfo(element);
+      if (!section) return;
+      decorateSourceSection(element, section.text, section.lineStart, section.lineEnd);
     });
   }
 }

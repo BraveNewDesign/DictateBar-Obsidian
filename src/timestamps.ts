@@ -33,5 +33,7 @@ export function leadingTimestamp(text: string): { raw: string; date: Date; lengt
 }
 
 export function prettyTimestamp(date: Date, locale?: string): string {
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+  const day = new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'numeric', day: 'numeric' }).format(date);
+  const time = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(date);
+  return `${day} ${time}`;
 }

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { leadingTimestamp, parseTimestamp, prettyTimestamp } from '../src/timestamps.ts';
 import { decorateTimestamps } from '../src/render.ts';
 import { JSDOM } from 'jsdom';
+import { decorateSourceSection, locationsInSource } from '../src/sections.ts';
 
 test('ISO timestamps preserve the recorded instant across offsets', () => {
   assert.equal(parseTimestamp('2026-09-13T19:30:00-04:00')?.toISOString(), '2026-09-13T23:30:00.000Z');
@@ -20,7 +21,7 @@ test('invalid dates and ordinary bracketed text stay unchanged', () => {
   assert.equal(leadingTimestamp('Text [2026-09-13T12:00:00Z]'), null);
 });
 test('formatted dates are readable and leading matches leave the body intact', () => {
-  assert.ok(prettyTimestamp(new Date('2026-09-13T12:00:00Z'), 'en-US').includes('Sep 13, 2026'));
+  assert.ok(prettyTimestamp(new Date('2026-09-13T12:00:00Z'), 'en-US').includes('9/13/2026'));
   const text = '[2026-09-13T12:00:00Z] **Hello**';
   assert.equal(text.slice(leadingTimestamp(text)!.length), ' **Hello**');
 });
@@ -175,4 +176,27 @@ test('marker-like comments in code blocks remain untouched', () => {
 
   assert.equal(root.querySelectorAll('.dictatebar-location-boundary').length, 0);
   assert.equal(root.querySelector('pre')?.childNodes.length, 1);
+});
+
+
+test('source sections decorate Obsidian list bullets and preserve entries outside locations', () => {
+  const source = ['<!-- dictatebar:start id="work" -->', '- [2026-10-21T09:31:12-07:00] **Hello**', '<!-- dictatebar:end id="work" -->', '- [2026-10-21T09:31:12-07:00] outside'].join('\n');
+  const dom = new JSDOM('<div><ul><li data-line="0"><span class="list-bullet"></span>[2026-10-21T09:31:12-07:00] <strong>Hello</strong></li></ul></div>');
+  const section = dom.window.document.querySelector('div')!;
+  decorateSourceSection(section, source, 1, 1);
+  decorateSourceSection(section, source, 1, 1);
+  assert.equal(section.querySelectorAll('time').length, 1);
+  assert.match(section.textContent!, / \| Hello/);
+  assert.equal(section.querySelector('strong')?.textContent, 'Hello');
+  const outside = section.cloneNode(true) as HTMLElement;
+  outside.querySelector('li')!.innerHTML = '<span class="list-bullet"></span>[2026-10-21T09:31:12-07:00] outside';
+  decorateSourceSection(outside, source, 3, 3);
+  assert.equal(outside.querySelector('time'), null);
+});
+
+test('source validation ignores fenced examples and rejects mismatched or duplicate markers', () => {
+  const valid = '<!-- dictatebar:start Work -->\n- entry\n<!-- dictatebar:end -->';
+  assert.equal(locationsInSource('```\n<!-- dictatebar:start ignored -->\n```\n' + valid).length, 1);
+  assert.equal(locationsInSource(valid + '\n' + valid).length, 0);
+  assert.equal(locationsInSource('<!-- dictatebar:start id="a" -->\n<!-- dictatebar:end id="b" -->').length, 0);
 });
