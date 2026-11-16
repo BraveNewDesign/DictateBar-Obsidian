@@ -10,6 +10,14 @@ The goal is a reading experience inspired by Dictate Bar's Dictations Viewer. En
 
 **Compatibility:** Requires Obsidian 1.15.1 or later on desktop. Reading view has been verified on macOS; Windows, Linux, Live Preview, and PDF export have not yet been verified. Mobile is not supported in this release.
 
+## Install
+
+Find [Dictate Bar in the Obsidian Community directory](https://community.obsidian.md/plugins/dictatebar), or install it directly in Obsidian:
+
+1. Open **Settings → Community plugins** and turn off Restricted mode if needed.
+2. Select **Browse** and search for **Dictate Bar**.
+3. Select the plugin, choose **Install**, and then **Enable**.
+
 ## See it in action
 
 ![The same Daily Notes file in Obsidian, with formatted timestamps in Reading view on the left and the original Markdown in editing view on the right](assets/screenshots/editing-and-reading.png)
@@ -62,17 +70,15 @@ Checkboxes inside this block are read-only; edit their Markdown source to change
 
 For ongoing captures, use the regular Markdown insertion location above. Dictate Bar protects fenced code from insertion, so don't place its insertion markers inside a fence.
 
-## Install locally
+## Install manually
 
-Copy `main.js`, `manifest.json`, and `styles.css` into:
+Alternatively, copy `main.js`, `manifest.json`, and `styles.css` from the [latest GitHub release](https://github.com/BraveNewDesign/DictateBar-Obsidian/releases/latest) into:
 
 ```text
 <your-vault>/.obsidian/plugins/dictatebar/
 ```
 
 Reload Obsidian, then enable **Dictate Bar** under Settings → Community plugins. For a fresh build, run `npm ci` and `npm run build` before copying the files.
-
-Until the plugin is listed in Obsidian's Community Plugins directory, install it manually using the files above.
 
 ## Scope
 
